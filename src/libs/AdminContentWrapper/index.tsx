@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
-import { Button, Empty, Failure, Field, Icon, Input, Label } from "@/components";
-import { createContentItem, deleteContentItem, updateContentItem, useContentList } from "@/hooks";
+import { useRef, useState } from "react";
+import { Button, Empty, Failure, Field, Hint, Icon, Input, Label } from "@/components";
+import { createContentItem, deleteContentItem, updateContentItem, uploadImage, useContentList } from "@/hooks";
 import type { IContentRecord } from "@/server/services/content";
 import {
 	ActionsStyled,
@@ -248,6 +248,9 @@ function ItemCard({ type, specs, item, isNew, canDelete, canPublish, onChanged, 
 							value={values[spec.key] ?? ""}
 							onChange={(event) => setValues((prev) => ({ ...prev, [spec.key]: event.target.value }))}
 						/>
+						{spec.key === "image" && (
+							<ImageUpload onUploaded={(url) => setValues((prev) => ({ ...prev, image: url }))} />
+						)}
 					</Field>
 				))}
 			</FieldsStyled>
@@ -272,6 +275,43 @@ function ItemCard({ type, specs, item, isNew, canDelete, canPublish, onChanged, 
 				{state === "saved" && <SavedStyled>Saved</SavedStyled>}
 			</ActionsStyled>
 		</ItemCardStyled>
+	);
+}
+
+// Upload an image to ImageKit and hand the hosted URL back to the field. When
+// upload is disabled (placeholder keys), it prompts the owner to paste a URL.
+function ImageUpload({ onUploaded }: { onUploaded: (url: string) => void }) {
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [state, setState] = useState<"idle" | "uploading" | "disabled" | "error">("idle");
+
+	async function onFile(file: File | undefined) {
+		if (!file) return;
+		setState("uploading");
+		try {
+			onUploaded(await uploadImage(file));
+			setState("idle");
+		} catch (error) {
+			const status = (error as { response?: { status?: number } }).response?.status;
+			setState(status === 503 ? "disabled" : "error");
+		}
+	}
+
+	return (
+		<div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
+			<input
+				ref={inputRef}
+				type="file"
+				accept="image/*"
+				hidden
+				onChange={(event) => onFile(event.target.files?.[0])}
+			/>
+			<Button variant="outline" onClick={() => inputRef.current?.click()} disabled={state === "uploading"}>
+				<Icon name="plus" size={16} />
+				{state === "uploading" ? "Uploading…" : "Upload image"}
+			</Button>
+			{state === "disabled" && <Hint>Image upload is not set up yet. Paste an image URL above instead.</Hint>}
+			{state === "error" && <Hint>The upload failed. Try again, or paste an image URL above.</Hint>}
+		</div>
 	);
 }
 

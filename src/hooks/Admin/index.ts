@@ -71,3 +71,13 @@ export function updateContentItem(
 export function deleteContentItem(type: string, id: string) {
 	return api().delete(`/api/admin/content/${type}/${id}`);
 }
+
+// Upload an image to ImageKit via the admin route; returns the hosted URL. Throws
+// when upload is disabled (placeholder keys) so the caller can prompt for a URL.
+export function uploadImage(file: File) {
+	const form = new FormData();
+	form.set("file", file);
+	return api()
+		.post<{ url: string }>("/api/admin/upload", form)
+		.then((res) => res.data.url);
+}

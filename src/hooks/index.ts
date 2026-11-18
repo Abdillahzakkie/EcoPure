@@ -5,6 +5,7 @@ export {
 	deleteAvailabilityRule,
 	deleteContentItem,
 	updateContentItem,
+	uploadImage,
 	useAdminBooking,
 	useAdminBookings,
 	useAvailabilityRules,
