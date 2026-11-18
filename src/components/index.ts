@@ -19,6 +19,7 @@ export { default as Input } from "./Input";
 export { default as Label } from "./Label";
 export { default as LeafPanel } from "./LeafPanel";
 export { default as Notice, type TNoticeTone } from "./Notice";
+export { default as PageHero } from "./PageHero";
 export { default as Prose } from "./Prose";
 export { default as Quote } from "./Quote";
 export { default as ReasonItem } from "./ReasonItem";
