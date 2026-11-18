@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en-GB">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>EcoPure — home mockup</title>
+		<!--
+		  Home mockup, built on system.css (the token mirror of src/styles/global.ts).
+		  Verify at phone 390×844 and desk 1280×800. The built page at app/(site)/page.tsx
+		  matches this composition: announcement bar, hero with quote card, before/after,
+		  services, gallery, how-it-works, why-EcoPure, reviews, FAQ, final CTA, footer.
+		-->
+		<link rel="stylesheet" href="system.css" />
+		<style>
+			.bar { background: var(--ep-brand); color: var(--ep-brand-ink); text-align: center; padding: 9px; font-size: 14px; }
+			.nav { display: flex; align-items: center; justify-content: space-between; padding: 12px var(--ep-pad); border-bottom: 1px solid var(--ep-line); background: var(--ep-surface); }
+			.brand { font-family: var(--ep-font-display); font-weight: 700; color: var(--ep-brand-strong); font-size: 20px; }
+			.hero { background: linear-gradient(160deg, var(--ep-surface-soft), var(--ep-surface-mint)); }
+			.hero-grid { display: grid; gap: 40px; padding: 64px var(--ep-pad); align-items: center; }
+			.h1 { font-family: var(--ep-font-display); font-weight: 600; font-size: 48px; line-height: 1.05; margin: 16px 0; }
+			.h1 em { font-style: normal; color: var(--ep-brand); }
+			.lead { color: var(--ep-muted); font-size: 20px; max-width: 46ch; }
+			.ctas { display: flex; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
+			.section { padding: 60px 0; }
+			.section.mint { background: var(--ep-surface-mint); }
+			.section.dark { background: var(--ep-brand-strong); color: #fff; }
+			.eyebrow { color: var(--ep-brand); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 14px; }
+			.dark .eyebrow { color: var(--ep-accent); }
+			.h2 { font-size: 40px; margin: 10px 0 24px; }
+			.grid { display: grid; gap: 20px; grid-template-columns: repeat(3, 1fr); }
+			.cta-panel { background: var(--ep-brand); color: #fff; border-radius: var(--ep-radius-card); padding: 48px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+			@media (min-width: 900px) { .hero-grid { grid-template-columns: 1.05fr 0.95fr; } }
+			@media (max-width: 720px) { .h1 { font-size: 34px; } .h2 { font-size: 28px; } .grid { grid-template-columns: 1fr; } }
+		</style>
+	</head>
+	<body>
+		<div class="bar">Now booking homes and offices. Free, no-obligation quotes.</div>
+		<div class="nav">
+			<span class="brand">EcoPure</span>
+			<a class="ep-btn pri" href="#">Free quote</a>
+		</div>
+
+		<header class="hero">
+			<div class="ep-container hero-grid">
+				<div>
+					<span class="ep-badge" style="background: var(--ep-surface); color: var(--ep-text); border: 1px solid var(--ep-line);">Eco-friendly cleaning for homes and offices</span>
+					<h1 class="h1">Spotless spaces, <em>naturally.</em></h1>
+					<p class="lead">EcoPure brings careful, eco-friendly cleaning to your home or workplace. Flexible visits, friendly teams and a free quote in minutes.</p>
+					<div class="ctas">
+						<a class="ep-btn pri" href="#">Get a free quote →</a>
+						<a class="ep-btn out" href="#">See our services</a>
+					</div>
+				</div>
+				<div class="ep-card" style="box-shadow: var(--ep-shadow);">
+					<h2 style="margin: 0 0 4px; font-size: 30px;">Get your free quote</h2>
+					<p style="color: var(--ep-muted); margin: 0 0 16px;">Tell us a little about your space. We reply quickly.</p>
+					<div class="ep-field" style="margin-bottom: 14px;"><label>Your name</label><input placeholder="Jane Smith" /></div>
+					<div class="ep-field" style="margin-bottom: 14px;"><label>Phone or email</label><input placeholder="How should we reach you?" /></div>
+					<a class="ep-btn pri" style="width: 100%; justify-content: center;" href="#">Request my free quote</a>
+				</div>
+			</div>
+		</header>
+
+		<section class="section">
+			<div class="ep-container">
+				<span class="eyebrow">Our services</span>
+				<h2 class="h2">Cleaning for every kind of space</h2>
+				<div class="grid">
+					<div class="ep-card"><h3>Home cleaning</h3><p style="color: var(--ep-muted);">Weekly, fortnightly or monthly visits that keep your home fresh.</p><a href="#" style="color: var(--ep-brand); font-weight: 700;">Get a quote →</a></div>
+					<div class="ep-card"><h3>Office cleaning</h3><p style="color: var(--ep-muted);">Reliable out-of-hours or daytime cleaning for a healthier workplace.</p><a href="#" style="color: var(--ep-brand); font-weight: 700;">Get a quote →</a></div>
+					<div class="ep-card"><h3>Deep cleaning</h3><p style="color: var(--ep-muted);">A top-to-bottom reset for the corners regular cleans skip.</p><a href="#" style="color: var(--ep-brand); font-weight: 700;">Get a quote →</a></div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="ep-container">
+				<div class="cta-panel">
+					<div><h2 style="color: #fff; margin: 0;">Ready for a fresher space?</h2><p style="color: rgba(255,255,255,0.88); margin: 6px 0 0;">Get your free quote today and let EcoPure take care of the rest.</p></div>
+					<a class="ep-btn" style="background: #fff; color: var(--ep-brand); border-color: #fff;" href="#">Get a free quote →</a>
+				</div>
+			</div>
+		</section>
+	</body>
+</html>

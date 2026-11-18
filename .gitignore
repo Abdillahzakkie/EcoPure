@@ -34,3 +34,6 @@ pnpm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# Next.js auto-generated agent rules
+AGENTS.md
