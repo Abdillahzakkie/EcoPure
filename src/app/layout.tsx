@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Outfit } from "next/font/google";
+import HydrationMark from "@/components/HydrationMark";
 import StyledComponentsRegistry from "@/components/StyledComponentsRegistry";
 import { EP_BG, GlobalStyle } from "@/styles";
 
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<body>
 				<StyledComponentsRegistry>
 					<GlobalStyle />
+					<HydrationMark />
 					{children}
 				</StyledComponentsRegistry>
 			</body>
