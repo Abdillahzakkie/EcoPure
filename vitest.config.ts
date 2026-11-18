@@ -24,6 +24,11 @@ export default defineConfig({
 		},
 	},
 	resolve: {
-		alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+		alias: {
+			"@": fileURLToPath(new URL("./src", import.meta.url)),
+			// The server-only guard throws on import outside an RSC bundle; stub it
+			// so server modules can be unit-tested in the node environment.
+			"server-only": fileURLToPath(new URL("./src/test/server-only-stub.ts", import.meta.url)),
+		},
 	},
 });
