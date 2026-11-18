@@ -17,7 +17,7 @@ export const GlobalStyle = createGlobalStyle`
 
 		--ep-text: #0F3D26;
 		--ep-muted: #3E5A4A;
-		--ep-muted-2: #6E8578;
+		--ep-muted-2: #5A6E62;
 
 		--ep-brand: ${EP_BRAND};
 		--ep-brand-strong: #0F3D26;
@@ -31,7 +31,7 @@ export const GlobalStyle = createGlobalStyle`
 
 		/* Status colours: a word plus a colour, never colour alone. */
 		--ep-ok: #037B40; --ep-ok-bg: #E4F4EA;
-		--ep-pending: #B5820A; --ep-pending-bg: #FFF3D4;
+		--ep-pending: #8A6400; --ep-pending-bg: #FFF3D4;
 		--ep-info: #1C6AC7; --ep-info-bg: #E2EEFB;
 		--ep-danger: #C0392B; --ep-danger-bg: #FBE6E3;
 		--ep-neutral: #3E5A4A; --ep-neutral-bg: #ECF1EE;
