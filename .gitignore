@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+
+# testing
+coverage/
+test-results/
+playwright-report/
+.playwright/
+
+# env and secrets
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel/
+
+# build info and logs
+*.tsbuildinfo
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# os and editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
