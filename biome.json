@@ -11,7 +11,8 @@
 			"!**/.next/**",
 			"!**/coverage/**",
 			"!**/playwright-report/**",
-			"!**/AGENTS.md"
+			"!**/AGENTS.md",
+			"!pnpm-lock.yaml"
 		]
 	},
 	"formatter": {

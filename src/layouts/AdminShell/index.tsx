@@ -9,6 +9,7 @@ const NAV = [
 	{ href: "/admin", label: "Inbox", icon: "inbox" as const },
 	{ href: "/admin/availability", label: "Availability", icon: "calendar" as const },
 	{ href: "/admin/content", label: "Content", icon: "edit" as const },
+	{ href: "/admin/account", label: "Account", icon: "user" as const },
 ];
 
 // The admin chrome: a top bar with the brand, section nav, and sign out, around
