@@ -1,0 +1,16 @@
+# Local MongoDB for development and tests. The app and the seed point at this
+# container through MONGODB_URI in .env.local, which uses database name
+# `ecopure`. Reuse a shared Mongo already on host port 27018 if one is running
+# (`docker ps`); otherwise start this one with `docker compose up -d`.
+services:
+    mongo:
+        image: mongo:7.0
+        container_name: ecopure-mongo
+        ports:
+            - "27018:27017"
+        volumes:
+            - ecopure-mongo-data:/data/db
+        restart: unless-stopped
+
+volumes:
+    ecopure-mongo-data:
