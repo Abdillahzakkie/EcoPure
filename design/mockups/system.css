@@ -1,0 +1,103 @@
+/*
+ * EcoPure design system — mockup mirror of the app tokens.
+ *
+ * These values mirror src/styles/global.ts. Where this file and global.ts
+ * disagree, global.ts wins and this file is the bug (ARCHITECTURE.md §7). The
+ * mockup sheets in this folder consume these tokens so a drawn screen and the
+ * built screen share one source of truth.
+ */
+
+:root {
+	--ep-bg: #faf9f5;
+	--ep-surface: #ffffff;
+	--ep-surface-mint: #eaf6ee;
+	--ep-surface-soft: #f2faf5;
+	--ep-line: #d5e8dc;
+
+	--ep-text: #0f3d26;
+	--ep-muted: #3e5a4a;
+	--ep-muted-2: #5a6e62;
+
+	--ep-brand: #037b40;
+	--ep-brand-strong: #0f3d26;
+	--ep-brand-ink: #ffffff;
+	--ep-accent: #ffc93c;
+	--ep-accent-soft: #ffe9a8;
+	--ep-accent-ink: #12301f;
+
+	--ep-ok: #037b40; --ep-ok-bg: #e4f4ea;
+	--ep-pending: #8a6400; --ep-pending-bg: #fff3d4;
+	--ep-info: #1c6ac7; --ep-info-bg: #e2eefb;
+	--ep-danger: #c0392b; --ep-danger-bg: #fbe6e3;
+
+	--ep-radius-sm: 12px;
+	--ep-radius-md: 16px;
+	--ep-radius-card: 22px;
+	--ep-radius-pill: 999px;
+
+	--ep-shadow-sm: 0 1px 2px rgba(15, 61, 38, 0.06), 0 6px 16px rgba(15, 61, 38, 0.05);
+	--ep-shadow: 0 2px 6px rgba(15, 61, 38, 0.06), 0 18px 40px rgba(15, 61, 38, 0.08);
+
+	--ep-pad: 20px;
+	--ep-maxw: 1200px;
+	--ep-font-display: "Outfit", system-ui, sans-serif;
+	--ep-font-body: "DM Sans", system-ui, sans-serif;
+}
+
+@media (min-width: 768px) {
+	:root { --ep-pad: 24px; }
+}
+
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: var(--ep-bg);
+	color: var(--ep-text);
+	font-family: var(--ep-font-body);
+	font-size: 16px;
+	line-height: 1.6;
+}
+h1, h2, h3 { font-family: var(--ep-font-display); font-weight: 600; letter-spacing: -0.02em; }
+
+/* Core component classes mirrored from the app's styled components. */
+.ep-container { max-width: var(--ep-maxw); margin: 0 auto; padding: 0 var(--ep-pad); }
+
+.ep-btn {
+	display: inline-flex; align-items: center; gap: 10px;
+	min-height: 48px; padding: 0 22px;
+	border: 1.5px solid var(--ep-brand); border-radius: var(--ep-radius-pill);
+	font-weight: 700; text-decoration: none; cursor: pointer;
+}
+/* Green is the only action colour. */
+.ep-btn.pri { background: var(--ep-brand); color: var(--ep-brand-ink); border-color: var(--ep-brand); }
+.ep-btn.out { background: var(--ep-surface); color: var(--ep-brand); }
+
+/* Yellow is a highlight, never a second button. */
+.ep-badge {
+	display: inline-flex; align-items: center; gap: 8px;
+	padding: 7px 14px; border-radius: var(--ep-radius-pill);
+	background: var(--ep-accent); color: var(--ep-accent-ink); font-weight: 600; font-size: 14px;
+}
+
+.ep-card {
+	background: var(--ep-surface); border: 1px solid var(--ep-line);
+	border-radius: var(--ep-radius-card); box-shadow: var(--ep-shadow-sm); padding: 24px;
+}
+
+.ep-field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.ep-field input, .ep-field select, .ep-field textarea {
+	width: 100%; min-height: 48px; padding: 12px 14px;
+	border: 1.5px solid var(--ep-line); border-radius: var(--ep-radius-sm);
+	font: inherit; background: var(--ep-surface); color: var(--ep-text);
+}
+
+.ep-pill {
+	display: inline-flex; align-items: center; gap: 7px;
+	padding: 4px 12px; border-radius: var(--ep-radius-pill); font-size: 14px; font-weight: 700;
+}
+.ep-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.ep-pill.pending { color: var(--ep-pending); background: var(--ep-pending-bg); }
+.ep-pill.ok { color: var(--ep-ok); background: var(--ep-ok-bg); }
+.ep-pill.danger { color: var(--ep-danger); background: var(--ep-danger-bg); }
+
+:focus-visible { outline: 2px solid var(--ep-brand); outline-offset: 2px; }
