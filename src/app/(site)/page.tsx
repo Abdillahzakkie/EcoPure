@@ -12,25 +12,26 @@ import {
 } from "@/components";
 import HomeHero from "@/libs/HomeHero";
 import WhySection from "@/libs/WhySection";
-import { getFaqs, getGallery, getReasons, getReviews, getServices, getSteps } from "@/server/content";
+import { getFaqs, getGallery, getReasons, getReviews, getServices, getSettings, getSteps } from "@/server/content";
 import { homeJsonLd } from "@/server/seo";
 
 // The home page: the full landing composition from CMS content. The one client
 // island is the hero quote form; everything else is statically rendered.
 export default async function HomePage() {
-	const [services, gallery, steps, reasons, reviews, faqs] = await Promise.all([
+	const [services, gallery, steps, reasons, reviews, faqs, settings] = await Promise.all([
 		getServices(),
 		getGallery(),
 		getSteps(),
 		getReasons(),
 		getReviews(),
 		getFaqs(),
+		getSettings(),
 	]);
 
 	return (
 		<>
-			{/* JSON-LD is a trusted, server-built string, not user input. */}
-			<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: homeJsonLd() }} />
+			{/* JSON-LD is a trusted, server-built string (contact details from CMS). */}
+			<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: homeJsonLd(settings) }} />
 
 			<HomeHero />
 

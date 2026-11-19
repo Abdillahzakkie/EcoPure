@@ -1,0 +1,77 @@
+name: CI
+
+# Runs the full quality gate on every pull request and on pushes to main. A red
+# run blocks merge. Keep this in step with CLAUDE.md and the local commands.
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    verify:
+        name: Typecheck, lint, test (coverage), build
+        runs-on: ubuntu-latest
+        services:
+            mongo:
+                image: mongo:7.0
+                ports:
+                    - 27018:27017
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - name: Typecheck
+              run: pnpm ts.check
+            - name: Lint (Biome)
+              run: pnpm lint
+            - name: Unit + integration tests with enforced coverage
+              run: pnpm test
+            - name: Production build
+              run: pnpm build
+              env:
+                  NODE_ENV: production
+                  MONGODB_URI: mongodb://127.0.0.1:27018/ecopure-ci
+                  NEXT_PUBLIC_SITE_URL: https://ecopure.example.com
+                  RESEND_API_KEY: re_ci_nonplaceholder
+                  EMAIL_FROM: EcoPure <hello@ecopure.example.com>
+                  OWNER_NOTIFY_EMAIL: owner@ecopure.example.com
+                  JWT_SECRET: a-strong-ci-secret-not-a-placeholder-value
+                  IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/ecopureci
+                  IMAGEKIT_PUBLIC_KEY: public_ci
+                  IMAGEKIT_PRIVATE_KEY: private_ci
+
+    e2e:
+        name: Playwright end-to-end
+        runs-on: ubuntu-latest
+        services:
+            mongo:
+                image: mongo:7.0
+                ports:
+                    - 27018:27017
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - name: Install Chromium for Playwright
+              run: pnpm exec playwright install --with-deps chromium
+            - name: End-to-end tests
+              run: pnpm e2e
+            - name: Upload Playwright report on failure
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-report
+                  path: playwright-report/
+                  retention-days: 7

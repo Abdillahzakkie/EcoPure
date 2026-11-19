@@ -100,7 +100,7 @@ function ListEditor({ type }: { type: string }) {
 	const [adding, setAdding] = useState(false);
 
 	async function onAdd(data: Record<string, unknown>) {
-		await createContentItem(type, { slug: `${type}-${Date.now()}`, data, order: items.length });
+		await createContentItem(type, { slug: `${type}-${crypto.randomUUID()}`, data, order: items.length });
 		setAdding(false);
 		await mutate();
 	}

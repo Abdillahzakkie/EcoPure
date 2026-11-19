@@ -1,3 +1,4 @@
+import { safeJsonForScript } from "@/server/html";
 import type { TServicePublic, TSettingsPublic } from "@/types";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -24,12 +25,12 @@ export function homeJsonLd(settings?: TSettingsPublic): string {
 	for (const key of Object.keys(data)) {
 		if (data[key] === undefined) delete data[key];
 	}
-	return JSON.stringify(data);
+	return safeJsonForScript(data);
 }
 
 // Build the Service JSON-LD for a service page.
 export function serviceJsonLd(service: TServicePublic): string {
-	return JSON.stringify({
+	return safeJsonForScript({
 		"@context": "https://schema.org",
 		"@type": "Service",
 		name: service.title,

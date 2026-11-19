@@ -1,6 +1,7 @@
 import "server-only";
 import { Resend } from "resend";
 import { config } from "@/server/config";
+import { escapeHtml } from "@/server/html";
 import type { TBookingKind, TBookingStatus } from "@/types";
 
 let client: Resend | null = null;
@@ -63,43 +64,35 @@ export interface IBookingSummary {
 	preferredSlots?: { date: string; window: string }[];
 }
 
-// Tell the owner a new request arrived.
-export async function notifyOwnerOfRequest(booking: IBookingSummary): Promise<{ ok: boolean }> {
+// --- Pure HTML builders (exported for testing). Every user-controlled value is
+// HTML-escaped so a name, note, or other field can never inject markup. ---
+
+export function renderOwnerRequest(booking: IBookingSummary): string {
 	const lines = [
 		`Type: ${KIND_LABEL[booking.kind]}`,
-		`Name: ${booking.name}`,
-		booking.email ? `Email: ${booking.email}` : null,
-		booking.phone ? `Phone: ${booking.phone}` : null,
-		`Property: ${booking.propertyType}`,
-		`Service: ${booking.serviceSlug}`,
-		`Frequency: ${booking.frequency}`,
-		`Postcode: ${booking.postcode}`,
-		booking.notes ? `Notes: ${booking.notes}` : null,
+		`Name: ${escapeHtml(booking.name)}`,
+		booking.email ? `Email: ${escapeHtml(booking.email)}` : null,
+		booking.phone ? `Phone: ${escapeHtml(booking.phone)}` : null,
+		`Property: ${escapeHtml(booking.propertyType)}`,
+		`Service: ${escapeHtml(booking.serviceSlug)}`,
+		`Frequency: ${escapeHtml(booking.frequency)}`,
+		`Postcode: ${escapeHtml(booking.postcode)}`,
+		booking.notes ? `Notes: ${escapeHtml(booking.notes)}` : null,
 		booking.preferredSlots?.length
-			? `Preferred times: ${booking.preferredSlots.map((s) => `${s.date} (${s.window})`).join(", ")}`
+			? `Preferred times: ${booking.preferredSlots.map((s) => escapeHtml(`${s.date} (${s.window})`)).join(", ")}`
 			: null,
 	].filter(Boolean);
-	return sendEmail({
-		to: config.OWNER_NOTIFY_EMAIL,
-		subject: `New ${KIND_LABEL[booking.kind]} from ${booking.name}`,
-		html: layout(`<p>A new ${KIND_LABEL[booking.kind]} arrived:</p><p>${lines.join("<br>")}</p>`),
-	});
+	return layout(`<p>A new ${KIND_LABEL[booking.kind]} arrived:</p><p>${lines.join("<br>")}</p>`);
 }
 
-// Confirm receipt to the customer, with the manage link.
-export async function sendCustomerReceipt(booking: IBookingSummary, manageUrl: string): Promise<{ ok: boolean }> {
-	if (!booking.email) return { ok: true };
-	return sendEmail({
-		to: booking.email,
-		subject: "We have your request — EcoPure Cleaning",
-		html: layout(
-			`<p>Hi ${booking.name},</p>
-			<p>Thanks for your ${KIND_LABEL[booking.kind]}. We have it and will reply shortly with your free quote.</p>
-			<p>You can view or change your request any time:</p>
-			<p><a href="${manageUrl}" style="color:#037B40;font-weight:bold">Manage your request</a></p>
-			<p>No payment is needed now. You pay the cleaner after the visit.</p>`,
-		),
-	});
+export function renderCustomerReceipt(booking: IBookingSummary, manageUrl: string): string {
+	return layout(
+		`<p>Hi ${escapeHtml(booking.name)},</p>
+		<p>Thanks for your ${KIND_LABEL[booking.kind]}. We have it and will reply shortly with your free quote.</p>
+		<p>You can view or change your request any time:</p>
+		<p><a href="${escapeHtml(manageUrl)}" style="color:#037B40;font-weight:bold">Manage your request</a></p>
+		<p>No payment is needed now. You pay the cleaner after the visit.</p>`,
+	);
 }
 
 const STATUS_COPY: Record<string, { subject: string; body: string }> = {
@@ -117,33 +110,74 @@ const STATUS_COPY: Record<string, { subject: string; body: string }> = {
 	},
 };
 
-// Tell the customer their request's status changed.
+export interface IStatusExtras {
+	note?: string;
+	priceNote?: string;
+	slot?: string;
+	manageUrl?: string;
+}
+
+// Returns the subject and html, or null when the status has no customer copy.
+export function renderCustomerStatus(
+	booking: IBookingSummary,
+	status: TBookingStatus,
+	extras: IStatusExtras,
+): { subject: string; html: string } | null {
+	const copy = STATUS_COPY[status];
+	if (!copy) return null;
+	const bits = [
+		`<p>Hi ${escapeHtml(booking.name)},</p>`,
+		`<p>${copy.body}</p>`,
+		extras.slot ? `<p><strong>Time:</strong> ${escapeHtml(extras.slot)}</p>` : "",
+		extras.priceNote ? `<p><strong>Quote:</strong> ${escapeHtml(extras.priceNote)}</p>` : "",
+		extras.note ? `<p>${escapeHtml(extras.note)}</p>` : "",
+		extras.manageUrl
+			? `<p><a href="${escapeHtml(extras.manageUrl)}" style="color:#037B40;font-weight:bold">View your request</a></p>`
+			: "",
+	];
+	return { subject: copy.subject, html: layout(bits.join("")) };
+}
+
+export function renderOwnerGuestChange(booking: IBookingSummary, change: string): string {
+	return layout(
+		`<p>${escapeHtml(booking.name)} (${escapeHtml(booking.postcode)}) ${escapeHtml(change)} their ${KIND_LABEL[booking.kind]}.</p>`,
+	);
+}
+
+// --- Send wrappers ---
+
+export async function notifyOwnerOfRequest(booking: IBookingSummary): Promise<{ ok: boolean }> {
+	return sendEmail({
+		to: config.OWNER_NOTIFY_EMAIL,
+		subject: `New ${KIND_LABEL[booking.kind]} from ${booking.name}`,
+		html: renderOwnerRequest(booking),
+	});
+}
+
+export async function sendCustomerReceipt(booking: IBookingSummary, manageUrl: string): Promise<{ ok: boolean }> {
+	if (!booking.email) return { ok: true };
+	return sendEmail({
+		to: booking.email,
+		subject: "We have your request — EcoPure Cleaning",
+		html: renderCustomerReceipt(booking, manageUrl),
+	});
+}
+
 export async function sendCustomerStatus(
 	booking: IBookingSummary,
 	status: TBookingStatus,
-	extras: { note?: string; priceNote?: string; slot?: string; manageUrl?: string },
+	extras: IStatusExtras,
 ): Promise<{ ok: boolean }> {
 	if (!booking.email) return { ok: true };
-	const copy = STATUS_COPY[status];
-	if (!copy) return { ok: true };
-	const bits = [
-		`<p>Hi ${booking.name},</p>`,
-		`<p>${copy.body}</p>`,
-		extras.slot ? `<p><strong>Time:</strong> ${extras.slot}</p>` : "",
-		extras.priceNote ? `<p><strong>Quote:</strong> ${extras.priceNote}</p>` : "",
-		extras.note ? `<p>${extras.note}</p>` : "",
-		extras.manageUrl
-			? `<p><a href="${extras.manageUrl}" style="color:#037B40;font-weight:bold">View your request</a></p>`
-			: "",
-	];
-	return sendEmail({ to: booking.email, subject: copy.subject, html: layout(bits.join("")) });
+	const rendered = renderCustomerStatus(booking, status, extras);
+	if (!rendered) return { ok: true };
+	return sendEmail({ to: booking.email, subject: rendered.subject, html: rendered.html });
 }
 
-// Tell the owner a guest rescheduled or cancelled.
 export async function notifyOwnerOfGuestChange(booking: IBookingSummary, change: string): Promise<{ ok: boolean }> {
 	return sendEmail({
 		to: config.OWNER_NOTIFY_EMAIL,
 		subject: `${booking.name} ${change} their request`,
-		html: layout(`<p>${booking.name} (${booking.postcode}) ${change} their ${KIND_LABEL[booking.kind]}.</p>`),
+		html: renderOwnerGuestChange(booking, change),
 	});
 }

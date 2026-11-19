@@ -206,6 +206,9 @@ export async function applyAdminAction(id: string, action: TAdminBookingAction):
 	if (action.action === "complete" && doc.status !== "confirmed") {
 		throw new ConflictError("Only a confirmed booking can be completed.");
 	}
+	if (action.action === "decline" && doc.status !== "pending") {
+		throw new ConflictError("Only a pending request can be declined.");
+	}
 	if (action.action === "confirm") {
 		if (doc.status !== "pending") throw new ConflictError("Only a pending request can be confirmed.");
 		if (action.confirmedSlot) doc.confirmedSlot = action.confirmedSlot;

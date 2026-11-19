@@ -1,5 +1,15 @@
+import { SignJWT } from "jose";
 import { describe, expect, it } from "vitest";
 import { mintManageToken, verifyManageToken } from "./tokens";
+
+function sign(claims: Record<string, unknown>, sub: string, jti: string): Promise<string> {
+	return new SignJWT(claims)
+		.setProtectedHeader({ alg: "HS256" })
+		.setSubject(sub)
+		.setJti(jti)
+		.setExpirationTime("1h")
+		.sign(new TextEncoder().encode(process.env.JWT_SECRET));
+}
 
 describe("manage tokens", () => {
 	it("mints a token that verifies back to the booking id and jti", async () => {
@@ -21,5 +31,10 @@ describe("manage tokens", () => {
 		const a = await mintManageToken("booking-123");
 		const b = await mintManageToken("booking-123");
 		expect(a.jti).not.toBe(b.jti);
+	});
+
+	it("rejects a validly-signed token issued for another purpose", async () => {
+		const token = await sign({ purpose: "something-else" }, "booking-1", "jti-1");
+		expect(await verifyManageToken(token)).toBeNull();
 	});
 });

@@ -49,4 +49,23 @@ describe("deriveOpenWindows", () => {
 		const [first] = deriveOpenWindows(rules, { today: TODAY, days: 7 });
 		expect(first.label).toContain("Morning");
 	});
+
+	it("drops a window that has reached its capacity", () => {
+		const rules: IRule[] = [{ kind: "recurring", weekday: 4, window: "morning", open: true, capacity: 2 }];
+		const windows = deriveOpenWindows(rules, {
+			today: TODAY,
+			days: 14,
+			// The 19th is full (2 of 2); the 26th has room (1 of 2).
+			bookedCounts: { "2026-11-19:morning": 2, "2026-11-26:morning": 1 },
+		});
+		const dates = windows.map((w) => w.date);
+		expect(dates).not.toContain("2026-11-19");
+		expect(dates).toContain("2026-11-26");
+	});
+
+	it("offers a window with no capacity set regardless of booked count", () => {
+		const rules: IRule[] = [{ kind: "recurring", weekday: 4, window: "morning", open: true }];
+		const windows = deriveOpenWindows(rules, { today: TODAY, days: 7, bookedCounts: { "2026-11-19:morning": 99 } });
+		expect(windows.map((w) => w.date)).toContain("2026-11-19");
+	});
 });
