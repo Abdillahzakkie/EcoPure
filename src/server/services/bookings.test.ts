@@ -6,8 +6,15 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 const DB_NAME = `ecopure-itest-${process.pid}-${Date.now()}`;
 process.env.MONGODB_URI = `mongodb://127.0.0.1:27018/${DB_NAME}`;
 
-const { createBooking, applyAdminAction, getBookingByToken, cancelBooking, rescheduleBooking, listBookings } =
-	await import("./bookings");
+const {
+	createBooking,
+	applyAdminAction,
+	getBookingByToken,
+	getBookingForAdmin,
+	cancelBooking,
+	rescheduleBooking,
+	listBookings,
+} = await import("./bookings");
 const { mintManageToken } = await import("./tokens");
 const { Booking } = await import("@/server/models/Booking");
 const { connectToDatabase } = await import("@/server/db/connect");
@@ -86,6 +93,17 @@ describe("bookings service (integration)", () => {
 		await expect(applyAdminAction(booking.id, { action: "confirm" })).rejects.toThrow();
 	});
 
+	it("rejects declining a booking that is not pending", async () => {
+		const { booking } = await createBooking({
+			...quoteInput,
+			kind: "booking",
+			preferredSlots: [{ date: "2026-12-01", window: "morning" }],
+		});
+		await applyAdminAction(booking.id, { action: "confirm" });
+		// A confirmed booking cannot be declined — that would overwrite its state.
+		await expect(applyAdminAction(booking.id, { action: "decline" })).rejects.toThrow();
+	});
+
 	it("loads a booking by a valid manage token and revokes it on cancel", async () => {
 		const { booking } = await createBooking(quoteInput);
 		const token = await tokenFor(booking.id);
@@ -116,5 +134,37 @@ describe("bookings service (integration)", () => {
 		for (let i = 1; i < all.length; i++) {
 			expect(all[i - 1].createdAt >= all[i].createdAt).toBe(true);
 		}
+	});
+
+	it("filters the list by status and kind", async () => {
+		const confirmed = await listBookings({ status: "confirmed" });
+		expect(confirmed.every((b) => b.status === "confirmed")).toBe(true);
+		const quotes = await listBookings({ kind: "quote" });
+		expect(quotes.every((b) => b.kind === "quote")).toBe(true);
+	});
+
+	it("loads one booking for the admin and 404s for a missing id", async () => {
+		const { booking } = await createBooking(quoteInput);
+		const loaded = await getBookingForAdmin(booking.id);
+		expect(loaded.id).toBe(booking.id);
+		await expect(getBookingForAdmin(String(new mongoose.Types.ObjectId()))).rejects.toMatchObject({ status: 404 });
+	});
+
+	it("captures a phone-only quote without an email", async () => {
+		const { booking } = await createBooking({ ...quoteInput, email: undefined, phone: "07700 900123" });
+		expect(booking.email).toBeUndefined();
+		expect(booking.phone).toBe("07700 900123");
+	});
+
+	it("rejects cancelling an already-cancelled booking", async () => {
+		const { booking } = await createBooking(quoteInput);
+		await cancelBooking(booking.id, await tokenFor(booking.id));
+		// A cancelled booking is no longer editable, even with a fresh token.
+		await expect(cancelBooking(booking.id, await tokenFor(booking.id))).rejects.toMatchObject({ status: 409 });
+	});
+
+	it("rejects a manage action with an invalid token", async () => {
+		const { booking } = await createBooking(quoteInput);
+		await expect(cancelBooking(booking.id, "not-a-token")).rejects.toMatchObject({ status: 401 });
 	});
 });
