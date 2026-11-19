@@ -2,7 +2,7 @@ import "server-only";
 import { revalidateTag } from "next/cache";
 import { contentTag } from "@/server/content";
 import { connectToDatabase } from "@/server/db/connect";
-import { NotFoundError } from "@/server/errors";
+import { ConflictError, NotFoundError } from "@/server/errors";
 import { Content, type TContentDoc } from "@/server/models/Content";
 import { parseContent, type TContentType } from "@/server/validators/content";
 
@@ -40,19 +40,30 @@ export async function listContent(type: TContentType): Promise<IContentRecord[]>
 	return docs.map(serialize);
 }
 
+function isDuplicateKeyError(error: unknown): boolean {
+	return typeof error === "object" && error !== null && (error as { code?: number }).code === 11000;
+}
+
 export async function createContent(
 	type: TContentType,
 	input: { slug: string; data: unknown; order?: number; published?: boolean },
 ): Promise<IContentRecord> {
 	const data = parseContent(type, input.data);
 	await connectToDatabase();
-	const doc = await Content.create({
-		type,
-		slug: input.slug,
-		data,
-		order: input.order ?? 0,
-		published: input.published ?? true,
-	});
+	let doc: TContentDoc;
+	try {
+		doc = await Content.create({
+			type,
+			slug: input.slug,
+			data,
+			order: input.order ?? 0,
+			published: input.published ?? true,
+		});
+	} catch (error) {
+		// A duplicate (type, slug) is a client problem, not a server error.
+		if (isDuplicateKeyError(error)) throw new ConflictError("An item with that name already exists.");
+		throw error;
+	}
 	revalidateTag(contentTag(type), "max");
 	return serialize(doc);
 }
