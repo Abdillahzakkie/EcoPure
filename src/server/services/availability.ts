@@ -2,6 +2,7 @@ import "server-only";
 import { connectToDatabase } from "@/server/db/connect";
 import { NotFoundError } from "@/server/errors";
 import { AvailabilityRule, type TAvailabilityRuleDoc } from "@/server/models/AvailabilityRule";
+import { Booking } from "@/server/models/Booking";
 import type { TAvailabilityRuleInput } from "@/server/validators/availability";
 import type { IOpenWindow } from "@/types";
 
@@ -16,6 +17,7 @@ export interface IRule {
 	window?: TWindow | null;
 	date?: string | null;
 	open: boolean;
+	capacity?: number | null;
 }
 
 function toISODate(date: Date): string {
@@ -40,20 +42,28 @@ function formatLabel(isoDate: string, window: TWindow): string {
 interface IDeriveOptions {
 	today?: string;
 	days?: number;
+	// Confirmed bookings per `${date}:${window}`. A window whose count reaches the
+	// recurring rule's capacity is treated as full and not offered.
+	bookedCounts?: Record<string, number>;
 }
 
 // Derive the open windows for the booking form from the recurring rules and date
 // exceptions, over the next `days` days. A recurring rule opens a weekday+window;
 // an exception for a date closes or reopens it (a whole day when no window is
-// set). Pure and deterministic given `today`, so it is unit-tested directly.
+// set); a window whose booked count reaches its capacity is dropped as full.
+// Pure and deterministic given its inputs, so it is unit-tested directly.
 export function deriveOpenWindows(rules: IRule[], options: IDeriveOptions = {}): IOpenWindow[] {
 	const today = options.today ?? toISODate(new Date());
 	const days = options.days ?? 28;
+	const bookedCounts = options.bookedCounts ?? {};
 
 	const recurring = new Set<string>();
+	// The soft cap per recurring weekday+window, when the owner set one.
+	const capacityByKey = new Map<string, number>();
 	for (const rule of rules) {
 		if (rule.kind === "recurring" && rule.open && rule.weekday != null && rule.window) {
 			recurring.add(`${rule.weekday}:${rule.window}`);
+			if (rule.capacity != null) capacityByKey.set(`${rule.weekday}:${rule.window}`, rule.capacity);
 		}
 	}
 
@@ -80,7 +90,11 @@ export function deriveOpenWindows(rules: IRule[], options: IDeriveOptions = {}):
 			let open = recurring.has(`${weekday}:${window}`);
 			if (dayOverride !== undefined) open = dayOverride;
 			if (windowOverride !== undefined) open = windowOverride;
-			if (open) out.push({ date: iso, window, label: formatLabel(iso, window) });
+			if (!open) continue;
+			// Drop a window that has reached its soft capacity for this date.
+			const capacity = capacityByKey.get(`${weekday}:${window}`);
+			if (capacity != null && (bookedCounts[`${iso}:${window}`] ?? 0) >= capacity) continue;
+			out.push({ date: iso, window, label: formatLabel(iso, window) });
 		}
 	}
 	return out;
@@ -93,14 +107,32 @@ function toRule(doc: TAvailabilityRuleDoc): IRule {
 		window: doc.window as TWindow | null,
 		date: doc.date,
 		open: doc.open,
+		capacity: doc.capacity,
 	};
 }
 
-// The open windows the booking form offers, derived from the stored rules.
+// Count the confirmed cleans already booked into each window, keyed by
+// `${date}:${window}`, so a window at capacity stops being offered.
+async function confirmedCounts(): Promise<Record<string, number>> {
+	const docs = await Booking.find({ status: "confirmed", confirmedSlot: { $ne: null } })
+		.select("confirmedSlot")
+		.lean();
+	const counts: Record<string, number> = {};
+	for (const doc of docs) {
+		const slot = doc.confirmedSlot;
+		if (!slot?.date || !slot.window) continue;
+		const key = `${slot.date}:${slot.window}`;
+		counts[key] = (counts[key] ?? 0) + 1;
+	}
+	return counts;
+}
+
+// The open windows the booking form offers, derived from the stored rules and
+// filtered by remaining capacity.
 export async function getOpenWindows(): Promise<IOpenWindow[]> {
 	await connectToDatabase();
-	const docs = await AvailabilityRule.find();
-	return deriveOpenWindows(docs.map(toRule));
+	const [docs, bookedCounts] = await Promise.all([AvailabilityRule.find(), confirmedCounts()]);
+	return deriveOpenWindows(docs.map(toRule), { bookedCounts });
 }
 
 // --- Admin CRUD ---
