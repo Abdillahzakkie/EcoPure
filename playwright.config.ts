@@ -1,4 +1,11 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
+
+// Use a pre-installed Chromium when one is present (this sandbox ships it at a
+// fixed path); otherwise fall back to the browser Playwright installs itself
+// (CI runs `playwright install`). Keeps one config working in both places.
+const PREINSTALLED_CHROMIUM = "/opt/pw-browsers/chromium";
+const executablePath = existsSync(PREINSTALLED_CHROMIUM) ? PREINSTALLED_CHROMIUM : undefined;
 
 // Run against `next dev` on a dedicated port so it never clashes with a dev
 // server on 3000. One worker: Chromium is memory-heavy on this machine. The
@@ -22,8 +29,7 @@ export default defineConfig({
 	use: {
 		baseURL: BASE_URL,
 		trace: "off",
-		// Use the pre-installed Chromium rather than downloading a browser.
-		launchOptions: { executablePath: "/opt/pw-browsers/chromium", args: ["--no-sandbox"] },
+		launchOptions: { executablePath, args: ["--no-sandbox"] },
 	},
 	projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 	webServer: {
