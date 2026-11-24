@@ -17,6 +17,8 @@ how-it-works, why-EcoPure, reviews, FAQ, final CTA, footer).
 - `system.css` — the token mirror plus the core component classes (button, card,
   field, badge, status pill). Open any mockup to see the tokens applied.
 - `home.html` — the home composition at responsive widths, built on `system.css`.
+- `book-times.html` — the preferred-time picker on `/book` and in the reschedule
+  panel: one week of days, the chosen day's times, and the chosen-times summary.
 
 ## Overflow and ease checks
 

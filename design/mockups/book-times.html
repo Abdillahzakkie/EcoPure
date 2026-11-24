@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en-GB">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>EcoPure — preferred times mockup</title>
+		<!-- The preferred-time picker on /book and the reschedule panel. Verify at 390x844 and 1280x800. -->
+		<link rel="stylesheet" href="system.css" />
+	</head>
+	<body>
+		<main class="ep-container" style="max-width: 720px; padding-top: 32px; padding-bottom: 32px;">
+			<div class="ep-card" style="padding: 28px;">
+			<div class="ep-tp-label">Preferred times</div>
+			<p style="margin: 4px 0 12px; font-size: 14px; color: var(--ep-muted);">Pick up to five. We confirm the exact time by email.</p>
+			<div class="ep-tp">
+				<div class="ep-tp-head"><span class="ep-tp-range">23 Nov – 29 Nov</span><span class="ep-tp-nav"><button disabled aria-label="Previous week">‹</button><button aria-label="Next week">›</button></span></div>
+				<div class="ep-tp-days">
+				<button class="ep-tp-day" disabled><span>Mo<i>n</i></span><strong>23</strong></button>
+				<button class="ep-tp-day" disabled><span>Tu<i>e</i></span><strong>24</strong></button>
+				<button class="ep-tp-day on has"><span>We<i>d</i></span><strong>25</strong></button>
+				<button class="ep-tp-day"><span>Th<i>u</i></span><strong>26</strong></button>
+				<button class="ep-tp-day has"><span>Fr<i>i</i></span><strong>27</strong></button>
+				<button class="ep-tp-day"><span>Sa<i>t</i></span><strong>28</strong></button>
+				<button class="ep-tp-day" disabled><span>Su<i>n</i></span><strong>29</strong></button>
+				</div>
+				<div class="ep-tp-times"><span class="ep-tp-label">Wednesday 25 November</span><div class="ep-tp-opts"><button class="ep-tp-opt on">Morning</button><button class="ep-tp-opt">Afternoon</button></div></div>
+				<div class="ep-tp-picked"><span class="ep-tp-label">2 of 5 times chosen</span><div class="ep-tp-tags"><button class="ep-tp-tag">Wed 25 Nov, morning ×</button><button class="ep-tp-tag">Fri 27 Nov, afternoon ×</button></div></div>
+			</div>
+			</div>
+		</main>
+	</body>
+</html>
