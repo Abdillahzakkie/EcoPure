@@ -4,11 +4,11 @@ import styled from "styled-components";
 export const LayoutStyled = styled.div`
 	display: grid;
 	gap: 28px;
-	grid-template-columns: 1fr;
+	grid-template-columns: minmax(0, 1fr);
 	align-items: start;
 
 	@media (min-width: 900px) {
-		grid-template-columns: 1.4fr 0.8fr;
+		grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
 	}
 `;
 
@@ -72,43 +72,6 @@ export const RowStyled = styled.div`
 	@media (min-width: 560px) {
 		grid-template-columns: 1fr 1fr;
 	}
-`;
-
-export const SlotsStyled = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-`;
-
-export const DayStyled = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-`;
-
-export const DayLabelStyled = styled.span`
-	font-weight: 700;
-	font-size: var(--ep-fs-sm);
-	color: var(--ep-text);
-`;
-
-export const ChipsStyled = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-`;
-
-export const ChipStyled = styled.button<{ $on: boolean }>`
-	min-height: 40px;
-	padding: 8px 14px;
-	border-radius: var(--ep-radius-pill);
-	border: 1.5px solid ${({ $on }) => ($on ? "var(--ep-brand)" : "var(--ep-line)")};
-	background: ${({ $on }) => ($on ? "var(--ep-brand)" : "var(--ep-surface)")};
-	color: ${({ $on }) => ($on ? "var(--ep-brand-ink)" : "var(--ep-text)")};
-	font-family: var(--ep-font-body);
-	font-weight: 600;
-	font-size: var(--ep-fs-sm);
-	cursor: pointer;
 `;
 
 export const AsideStyled = styled.aside`

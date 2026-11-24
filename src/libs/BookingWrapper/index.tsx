@@ -1,29 +1,15 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { type FormEvent, useMemo, useState } from "react";
-import { Button, Failure, Field, FieldError, Hint, Icon, Input, Label, Success } from "@/components";
+import { type FormEvent, useState } from "react";
+import { Button, Failure, Field, FieldError, Hint, Icon, Input, Label, Success, TimePicker } from "@/components";
 import { useAvailability, useSubmitBooking } from "@/hooks";
 import { FREQUENCIES, PROPERTY_TYPES, SERVICE_SLUGS } from "@/server/validators";
 import { bookingRequestSchema } from "@/server/validators/booking";
-import type { IOpenWindow } from "@/types";
-import {
-	AsideStyled,
-	ChipStyled,
-	ChipsStyled,
-	DayLabelStyled,
-	DayStyled,
-	FormCardStyled,
-	FormStyled,
-	LayoutStyled,
-	RowStyled,
-	SegBtnStyled,
-	SegStyled,
-	SlotsStyled,
-} from "./styled";
+import type { IPreferredSlot } from "@/types";
+import { AsideStyled, FormCardStyled, FormStyled, LayoutStyled, RowStyled, SegBtnStyled, SegStyled } from "./styled";
 
 type TKind = "quote" | "booking";
 type TStatus = "idle" | "submitting" | "sent" | "error";
-type TSlot = { date: string; window: "morning" | "afternoon" | "evening" };
 
 const SERVICE_LABELS: Record<string, string> = {
 	"home-cleaning": "Home cleaning",
@@ -40,27 +26,6 @@ const FREQUENCY_LABELS: Record<string, string> = {
 	fortnightly: "Fortnightly",
 	monthly: "Monthly",
 };
-
-function groupByDate(windows: IOpenWindow[]): { date: string; label: string; windows: IOpenWindow[] }[] {
-	const map = new Map<string, IOpenWindow[]>();
-	for (const window of windows) {
-		const list = map.get(window.date) ?? [];
-		list.push(window);
-		map.set(window.date, list);
-	}
-	return Array.from(map.entries()).map(([date, list]) => ({
-		date,
-		label: new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
-			weekday: "long",
-			day: "numeric",
-			month: "long",
-			timeZone: "UTC",
-		}),
-		windows: list,
-	}));
-}
-
-const WINDOW_LABELS: Record<string, string> = { morning: "Morning", afternoon: "Afternoon", evening: "Evening" };
 
 // The full quote/booking request form. A quote describes a space; a booking adds
 // one or more preferred time windows loaded from availability. Validates with the
@@ -86,21 +51,11 @@ export default function BookingWrapper() {
 	const [postcode, setPostcode] = useState("");
 	const [address, setAddress] = useState("");
 	const [notes, setNotes] = useState("");
-	const [slots, setSlots] = useState<TSlot[]>([]);
+	const [slots, setSlots] = useState<IPreferredSlot[]>([]);
 	const [status, setStatus] = useState<TStatus>("idle");
 	const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
 	const { windows, isLoading } = useAvailability(kind === "booking");
-	const days = useMemo(() => groupByDate(windows), [windows]);
-
-	function toggleSlot(slot: TSlot) {
-		setSlots((prev) => {
-			const exists = prev.some((s) => s.date === slot.date && s.window === slot.window);
-			if (exists) return prev.filter((s) => !(s.date === slot.date && s.window === slot.window));
-			if (prev.length >= 5) return prev;
-			return [...prev, slot];
-		});
-	}
 
 	async function onSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -300,41 +255,22 @@ export default function BookingWrapper() {
 
 					{kind === "booking" && (
 						<Field invalid={Boolean(errors.preferredSlots)}>
-							<Label>Preferred times</Label>
-							<Hint>Pick one or more. We confirm the exact time by email.</Hint>
+							<Label id="preferred-times">Preferred times</Label>
+							<Hint>Pick up to five. We confirm the exact time by email.</Hint>
 							{isLoading && <Hint>Loading available times…</Hint>}
-							{!isLoading && days.length === 0 && (
+							{!isLoading && windows.length === 0 && (
 								<Hint>
 									No times are listed right now. Send a quote request and we will arrange one.
 								</Hint>
 							)}
-							<SlotsStyled>
-								{days.map((day) => (
-									<DayStyled key={day.date}>
-										<DayLabelStyled>{day.label}</DayLabelStyled>
-										<ChipsStyled>
-											{day.windows.map((window) => {
-												const on = slots.some(
-													(s) => s.date === window.date && s.window === window.window,
-												);
-												return (
-													<ChipStyled
-														key={`${window.date}-${window.window}`}
-														type="button"
-														$on={on}
-														aria-pressed={on}
-														onClick={() =>
-															toggleSlot({ date: window.date, window: window.window })
-														}
-													>
-														{WINDOW_LABELS[window.window]}
-													</ChipStyled>
-												);
-											})}
-										</ChipsStyled>
-									</DayStyled>
-								))}
-							</SlotsStyled>
+							{(windows.length > 0 || slots.length > 0) && (
+								<TimePicker
+									labelledBy="preferred-times"
+									windows={windows}
+									value={slots}
+									onChange={setSlots}
+								/>
+							)}
 							{errors.preferredSlots && <FieldError>{errors.preferredSlots}</FieldError>}
 						</Field>
 					)}

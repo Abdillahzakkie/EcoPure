@@ -21,6 +21,7 @@
 	--ep-brand: #037b40;
 	--ep-brand-strong: #0f3d26;
 	--ep-brand-ink: #ffffff;
+	--ep-brand-wash: #dcefe3;
 	--ep-accent: #ffc93c;
 	--ep-accent-soft: #ffe9a8;
 	--ep-accent-ink: #12301f;
@@ -99,5 +100,34 @@ h1, h2, h3 { font-family: var(--ep-font-display); font-weight: 600; letter-spaci
 .ep-pill.pending { color: var(--ep-pending); background: var(--ep-pending-bg); }
 .ep-pill.ok { color: var(--ep-ok); background: var(--ep-ok-bg); }
 .ep-pill.danger { color: var(--ep-danger); background: var(--ep-danger-bg); }
+
+/* Time picker: one week of days, then the chosen day's times (TimePicker). */
+.ep-tp { display: flex; flex-direction: column; gap: 18px; padding: 14px; border: 1px solid var(--ep-line); border-radius: var(--ep-radius-md); background: var(--ep-surface-soft); }
+.ep-tp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ep-tp-range { font-family: var(--ep-font-display); font-weight: 600; }
+.ep-tp-nav { display: flex; gap: 8px; }
+.ep-tp-nav button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1.5px solid var(--ep-line); border-radius: 50%; background: var(--ep-surface); color: var(--ep-brand); cursor: pointer; }
+.ep-tp-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+.ep-tp-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.ep-tp-day { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; padding: 6px 0 12px; border: 1.5px solid var(--ep-line); border-radius: var(--ep-radius-sm); background: var(--ep-surface); color: var(--ep-text); font: inherit; font-size: 14px; line-height: 1.3; cursor: pointer; }
+.ep-tp-day strong { font-size: 16px; }
+.ep-tp-day i { display: none; font-style: normal; }
+.ep-tp-day:disabled { border-color: transparent; background: transparent; color: var(--ep-muted-2); cursor: not-allowed; }
+.ep-tp-day.on { border-color: var(--ep-brand); background: var(--ep-brand-wash); }
+.ep-tp-day.has::after { content: ""; position: absolute; bottom: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--ep-brand); }
+.ep-tp-times { display: flex; flex-direction: column; gap: 10px; }
+.ep-tp-label { font-size: 14px; font-weight: 600; }
+.ep-tp-opts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+.ep-tp-opt { min-height: 48px; padding: 8px 4px; border: 1.5px solid var(--ep-line); border-radius: var(--ep-radius-sm); background: var(--ep-surface); color: var(--ep-text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.ep-tp-opt.on { border-color: var(--ep-brand); background: var(--ep-brand); color: var(--ep-brand-ink); }
+.ep-tp-opt:disabled { color: var(--ep-muted-2); background: transparent; cursor: not-allowed; }
+.ep-tp-picked { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid var(--ep-line); }
+.ep-tp-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.ep-tp-tag { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 0; border-radius: var(--ep-radius-pill); background: var(--ep-brand-wash); color: var(--ep-text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+@media (min-width: 560px) {
+	.ep-tp { padding: 20px; }
+	.ep-tp-days { gap: 8px; }
+	.ep-tp-day i { display: inline; }
+}
 
 :focus-visible { outline: 2px solid var(--ep-brand); outline-offset: 2px; }

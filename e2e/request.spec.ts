@@ -29,3 +29,42 @@ test("the book page captures a booking request with a preferred time", async ({ 
 	await page.getByRole("button", { name: /Request my booking/i }).click();
 	await expect(page.getByRole("heading", { name: /Thank you/i })).toBeVisible();
 });
+
+// Every week used to render at once, which made the form several screens long.
+for (const width of [390, 1280]) {
+	test(`the time picker stays compact at ${width}px and tracks choices across weeks`, async ({ page }) => {
+		await page.setViewportSize({ width, height: 844 });
+		await page.goto("/book?intent=booking");
+		await waitForHydration(page);
+		const picker = page.getByRole("group", { name: "Preferred times" });
+		const times = picker.getByRole("button", { name: /^(Morning|Afternoon)$/ });
+		await expect(times).toHaveCount(2);
+
+		await times.first().click();
+		await expect(times.first()).toHaveAttribute("aria-pressed", "true");
+		await picker.getByRole("button", { name: "Next week" }).click();
+		await expect(times.first()).toHaveAttribute("aria-pressed", "false");
+
+		// Fill the five-time limit on three different days of a full week.
+		const days = picker.getByRole("group", { name: "Days" }).getByRole("button");
+		await expect(days).toHaveCount(7);
+		for (const day of [0, 1]) {
+			await days.nth(day).click();
+			await times.nth(0).click();
+			await times.nth(1).click();
+		}
+		await expect(picker.getByText("5 of 5 times chosen")).toBeVisible();
+		await days.nth(2).click();
+		await expect(times.first()).toBeDisabled();
+		const box = await picker.boundingBox();
+		expect(box?.height).toBeLessThan(640);
+		expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+
+		await picker
+			.getByRole("button", { name: /^Remove/ })
+			.first()
+			.click();
+		await expect(picker.getByText("4 of 5 times chosen")).toBeVisible();
+		await expect(times.first()).toBeEnabled();
+	});
+}

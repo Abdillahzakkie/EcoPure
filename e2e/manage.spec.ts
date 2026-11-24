@@ -53,3 +53,44 @@ test("a guest can open a manage link and cancel the request", async ({ page, req
 	await page.getByRole("button", { name: /Yes, cancel it/i }).click();
 	await expect(page.getByRole("heading", { name: /Your request is cancelled/i })).toBeVisible();
 });
+
+test("a guest can reschedule and drop an earlier preferred time", async ({ page, request }) => {
+	const windows = (await (await request.get("/api/availability")).json()).windows;
+	const { date, window } = windows[0];
+	const res = await request.post("/api/bookings", {
+		data: {
+			kind: "booking",
+			name: "Reschedule Tester",
+			email: "guest@example.com",
+			propertyType: "home",
+			serviceSlug: "home-cleaning",
+			frequency: "weekly",
+			postcode: "AB1 2CD",
+			preferredSlots: [{ date, window }],
+			source: "e2e",
+		},
+	});
+	expect(res.ok()).toBeTruthy();
+	const { booking } = await res.json();
+
+	await mongoose.connect(E2E_URI);
+	const doc = await mongoose.connection
+		.collection("bookings")
+		.findOne({ _id: new mongoose.Types.ObjectId(booking.id) });
+	await mongoose.disconnect();
+	const token = await manageTokenFor(booking.id, String(doc?.manageTokenId));
+
+	await page.goto(`/booking/manage?token=${encodeURIComponent(token)}`);
+	await waitForHydration(page);
+	await page.getByRole("button", { name: "Reschedule" }).click();
+	const picker = page.getByRole("group", { name: "Choose new preferred times" });
+	await expect(picker.getByText("1 of 5 times chosen")).toBeVisible();
+	await picker.getByRole("button", { name: "Next week" }).click();
+	await picker.getByRole("button", { name: /^Morning$/ }).click();
+	await picker
+		.getByRole("button", { name: /^Remove/ })
+		.first()
+		.click();
+	await page.getByRole("button", { name: "Save new times" }).click();
+	await expect(page.getByRole("heading", { name: /preferred times are updated/i })).toBeVisible();
+});
