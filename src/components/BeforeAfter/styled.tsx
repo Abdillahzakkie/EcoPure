@@ -51,6 +51,8 @@ export const HandleStyled = styled.div<{ $pos: number }>`
 	background: #ffffff;
 	transform: translateX(-50%);
 	box-shadow: 0 0 0 1px rgba(15, 61, 38, 0.1);
+	/* The handle is drawn over the range input, so let the pointer through to it. */
+	pointer-events: none;
 `;
 
 export const KnobStyled = styled.div`
