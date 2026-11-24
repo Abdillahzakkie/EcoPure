@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Button, Container, Empty, PageHero, Section } from "@/components";
+import { Button, Empty, PageHero, Section } from "@/components";
 import ManageWrapper from "@/libs/ManageWrapper";
 import { getBookingByToken } from "@/server/services/bookings";
 
@@ -31,20 +31,18 @@ export default async function ManagePage({ searchParams }: ISearch) {
 		<>
 			<PageHero eyebrow="Your request" title="Manage your request" />
 			<Section>
-				<Container>
-					{booking && token ? (
-						<ManageWrapper booking={booking} token={token} />
-					) : (
-						<Empty
-							title="This link is no longer valid"
-							description="The link may have expired, or the request was cancelled. Request a new quote and we will email you a fresh link."
-						>
-							<Button as="a" href="/book">
-								Request a free quote
-							</Button>
-						</Empty>
-					)}
-				</Container>
+				{booking && token ? (
+					<ManageWrapper booking={booking} token={token} />
+				) : (
+					<Empty
+						title="This link is no longer valid"
+						description="The link may have expired, or the request was cancelled. Request a new quote and we will email you a fresh link."
+					>
+						<Button as="a" href="/book">
+							Request a free quote
+						</Button>
+					</Empty>
+				)}
 			</Section>
 		</>
 	);

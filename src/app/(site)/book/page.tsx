@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Container, PageHero, Section } from "@/components";
+import { PageHero, Section } from "@/components";
 import BookingWrapper from "@/libs/BookingWrapper";
 
 export const metadata: Metadata = {
@@ -20,11 +20,9 @@ export default function BookPage() {
 				lead="Request a free quote or book a visit. We reply quickly, and there is no payment to make here — you pay the cleaner after the visit."
 			/>
 			<Section>
-				<Container>
-					<Suspense fallback={null}>
-						<BookingWrapper />
-					</Suspense>
-				</Container>
+				<Suspense fallback={null}>
+					<BookingWrapper />
+				</Suspense>
 			</Section>
 		</>
 	);
