@@ -31,3 +31,4 @@ export { default as Stat } from "./Stat";
 export { default as StatusPill, type TStatusTone } from "./StatusPill";
 export { default as Step } from "./Step";
 export { default as Success } from "./Success";
+export { default as TimePicker } from "./TimePicker";

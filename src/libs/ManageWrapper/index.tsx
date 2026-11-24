@@ -1,24 +1,10 @@
 "use client";
-import { useMemo, useState } from "react";
-import { Button, Failure, FieldError, Hint, StatusPill, Success } from "@/components";
+import { useState } from "react";
+import { Button, Failure, FieldError, Hint, StatusPill, Success, TimePicker } from "@/components";
 import { useAvailability, useManageBooking } from "@/hooks";
-import type { IBookingPublic, IOpenWindow } from "@/types";
-import {
-	ActionsStyled,
-	CardStyled,
-	ChipStyled,
-	ChipsStyled,
-	DayLabelStyled,
-	DayStyled,
-	DlStyled,
-	PanelStyled,
-	SlotsStyled,
-	TitleStyled,
-	TopStyled,
-	WrapStyled,
-} from "./styled";
+import type { IBookingPublic, IPreferredSlot } from "@/types";
+import { ActionsStyled, CardStyled, DlStyled, PanelStyled, TitleStyled, TopStyled, WrapStyled } from "./styled";
 
-type TSlot = { date: string; window: "morning" | "afternoon" | "evening" };
 type TMode = "view" | "reschedule";
 type TStatus = "idle" | "working" | "error";
 
@@ -41,16 +27,6 @@ function formatDay(date: string): string {
 	});
 }
 
-function groupByDate(windows: IOpenWindow[]) {
-	const map = new Map<string, IOpenWindow[]>();
-	for (const window of windows) {
-		const list = map.get(window.date) ?? [];
-		list.push(window);
-		map.set(window.date, list);
-	}
-	return Array.from(map.entries()).map(([date, list]) => ({ date, label: formatDay(date), windows: list }));
-}
-
 // The guest manage view. It shows the booking's status (word plus colour) and
 // details, and — while pending or confirmed — Reschedule and Cancel. Each action
 // re-verifies the manage token server-side.
@@ -58,23 +34,13 @@ export default function ManageWrapper({ booking: initial, token }: { booking: IB
 	const manage = useManageBooking();
 	const [booking, setBooking] = useState(initial);
 	const [mode, setMode] = useState<TMode>("view");
-	const [slots, setSlots] = useState<TSlot[]>(booking.preferredSlots ?? []);
+	const [slots, setSlots] = useState<IPreferredSlot[]>(booking.preferredSlots ?? []);
 	const [status, setStatus] = useState<TStatus>("idle");
 	const [done, setDone] = useState<null | "rescheduled" | "cancelled">(null);
 	const [confirmCancel, setConfirmCancel] = useState(false);
 
 	const canChange = booking.status === "pending" || booking.status === "confirmed";
 	const { windows, isLoading } = useAvailability(mode === "reschedule");
-	const days = useMemo(() => groupByDate(windows), [windows]);
-
-	function toggleSlot(slot: TSlot) {
-		setSlots((prev) => {
-			const exists = prev.some((s) => s.date === slot.date && s.window === slot.window);
-			if (exists) return prev.filter((s) => !(s.date === slot.date && s.window === slot.window));
-			if (prev.length >= 5) return prev;
-			return [...prev, slot];
-		});
-	}
 
 	async function onReschedule() {
 		if (slots.length === 0) {
@@ -195,37 +161,20 @@ export default function ManageWrapper({ booking: initial, token }: { booking: IB
 
 						{mode === "reschedule" && (
 							<PanelStyled>
-								<TitleStyled as="h3">Choose new preferred times</TitleStyled>
-								<Hint>Pick one or more. We confirm the exact time by email.</Hint>
+								<TitleStyled as="h3" id="new-times">
+									Choose new preferred times
+								</TitleStyled>
+								<Hint>Pick up to five. We confirm the exact time by email.</Hint>
 								{isLoading && <Hint>Loading available times…</Hint>}
-								{!isLoading && days.length === 0 && <Hint>No times are listed right now.</Hint>}
-								<SlotsStyled>
-									{days.map((day) => (
-										<DayStyled key={day.date}>
-											<DayLabelStyled>{day.label}</DayLabelStyled>
-											<ChipsStyled>
-												{day.windows.map((window) => {
-													const on = slots.some(
-														(s) => s.date === window.date && s.window === window.window,
-													);
-													return (
-														<ChipStyled
-															key={`${window.date}-${window.window}`}
-															type="button"
-															$on={on}
-															aria-pressed={on}
-															onClick={() =>
-																toggleSlot({ date: window.date, window: window.window })
-															}
-														>
-															{WINDOW_LABELS[window.window]}
-														</ChipStyled>
-													);
-												})}
-											</ChipsStyled>
-										</DayStyled>
-									))}
-								</SlotsStyled>
+								{!isLoading && windows.length === 0 && <Hint>No times are listed right now.</Hint>}
+								{(windows.length > 0 || slots.length > 0) && (
+									<TimePicker
+										labelledBy="new-times"
+										windows={windows}
+										value={slots}
+										onChange={setSlots}
+									/>
+								)}
 								{status === "error" && (
 									<FieldError>Choose at least one time, then try again.</FieldError>
 								)}

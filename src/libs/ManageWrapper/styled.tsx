@@ -62,39 +62,3 @@ export const PanelStyled = styled.div`
 	padding-top: 20px;
 	border-top: 1px solid var(--ep-line);
 `;
-
-export const SlotsStyled = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-`;
-
-export const DayStyled = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-`;
-
-export const DayLabelStyled = styled.span`
-	font-weight: 700;
-	font-size: var(--ep-fs-sm);
-`;
-
-export const ChipsStyled = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-`;
-
-export const ChipStyled = styled.button<{ $on: boolean }>`
-	min-height: 40px;
-	padding: 8px 14px;
-	border-radius: var(--ep-radius-pill);
-	border: 1.5px solid ${({ $on }) => ($on ? "var(--ep-brand)" : "var(--ep-line)")};
-	background: ${({ $on }) => ($on ? "var(--ep-brand)" : "var(--ep-surface)")};
-	color: ${({ $on }) => ($on ? "var(--ep-brand-ink)" : "var(--ep-text)")};
-	font-family: var(--ep-font-body);
-	font-weight: 600;
-	font-size: var(--ep-fs-sm);
-	cursor: pointer;
-`;
